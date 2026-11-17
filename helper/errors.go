@@ -14,7 +14,7 @@ type AppError struct {
 
 func (e *AppError) Error() string { return e.Code + ": " + e.Detail }
 
-// Sentinel error domain — daftar kode harus sama dengan API.md.
+// Sentinel error domain — daftar kode error baku sistem.
 var (
 	ErrInvalidCredentials = &AppError{Code: "INVALID_CREDENTIALS", Status: http.StatusUnauthorized, Detail: "email or password is wrong"}
 	ErrRateLimited        = &AppError{Code: "RATE_LIMITED", Status: http.StatusTooManyRequests, Detail: "too many attempts, try again later"}
