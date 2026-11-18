@@ -73,6 +73,17 @@ Detail mekanisme tiap fitur → bagian "Fitur Sistem" di atas.
 | role_name | VARCHAR PK, FK → `roles.name` | composite PK `(role_name, permission_name)` |
 | permission_name | VARCHAR PK, FK → `permissions.name` | dimuat ke memori sebagai permission set saat autentikasi JWT |
 
+#### `refresh_tokens` — sesi refresh token
+
+| Kolom | Tipe | Catatan |
+| --- | --- | --- |
+| id | BIGSERIAL PK | |
+| user_id | BIGINT FK → `users.id` ON DELETE CASCADE | semua token ikut terhapus saat user dihapus |
+| token_hash | TEXT UNIQUE | **hash SHA-256** dari refresh token, bukan nilai mentahnya — bocor sekalipun tidak bisa dipakai |
+| expires_at | TIMESTAMPTZ | TTL 7 hari (`JWT_REFRESH_TTL_DAYS`) |
+| revoked_at | TIMESTAMPTZ NULL | NULL = masih aktif; diisi saat refresh (rotasi) & logout |
+| created_at | TIMESTAMPTZ | |
+
 #### `doctors` — profil medis
 
 | Kolom | Tipe | Catatan |
