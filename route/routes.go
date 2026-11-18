@@ -1,0 +1,27 @@
+package route
+
+import (
+	"github.com/gofiber/fiber/v2"
+
+	"medicfo/app/service"
+	"medicfo/helper"
+)
+
+type Dependencies struct {
+	JWT         *helper.JWTManager
+	AuthService *service.AuthService
+}
+
+// Register memasang seluruh API di bawah /api/v1.
+func Register(app *fiber.App, deps Dependencies) {
+	api := app.Group("/api/v1")
+	RegisterAuth(api, deps)
+	// FT-03: RegisterDoctor(api, deps.DoctorService)  ← 1 baris + file sendiri
+	// FT-05: RegisterAppointment(api, deps.AppointmentService)
+}
+
+// ErrorHandler memetakan SEMUA error menjadi envelope di satu tempat.
+func ErrorHandler(c *fiber.Ctx, err error) error {
+	body, status := helper.FromError(err)
+	return c.Status(status).SendString(body)
+}
