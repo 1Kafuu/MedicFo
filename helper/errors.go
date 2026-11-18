@@ -26,6 +26,8 @@ var (
 	ErrTokenExpired       = &AppError{Code: "TOKEN_EXPIRED", Status: http.StatusUnauthorized, Detail: "token has expired"}
 	ErrUnauthorized       = &AppError{Code: "UNAUTHORIZED", Status: http.StatusUnauthorized, Detail: "authentication required"}
 	ErrInternal           = &AppError{Code: "INTERNAL_ERROR", Status: http.StatusInternalServerError, Detail: "internal server error"}
+	ErrBadRequest         = &AppError{Code: "BAD_REQUEST", Status: 400, Detail: "request body tidak valid"}
+	ErrDuplicateUser      = &AppError{Code: "DUPLICATE_USER", Status: 409, Detail: "username atau email sudah terdaftar"}
 )
 
 // AsAppError mengubah error apa pun menjadi *AppError.
