@@ -12,6 +12,7 @@ type Dependencies struct {
 	Pool        *pgxpool.Pool
 	JWT         *helper.JWTManager
 	AuthService *service.AuthService
+	Permissions *helper.PermissionSet
 }
 
 // Register memasang seluruh API di bawah /api/v1.

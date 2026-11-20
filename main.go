@@ -41,6 +41,13 @@ func main() {
 		os.Exit(1)
 	}
 	defer pool.Close()
+	permissionRepo := repository.NewPermissionRepository(pool)
+	rawPermissions, err := permissionRepo.ListRolePermissions(context.Background())
+	if err != nil {
+		logger.Error("gagal memuat permissions", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	permissionSet := helper.NewPermissionSet(rawPermissions)
 
 	// 3. Susun dependensi: helper → repository → service → route.
 	jwtManager := helper.NewJWTManager(
@@ -69,6 +76,7 @@ func main() {
 		Pool:        pool,
 		JWT:         jwtManager,
 		AuthService: authSvc,
+		Permissions: permissionSet,
 	})
 
 	// 5. Jalankan server + graceful shutdown.
