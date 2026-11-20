@@ -12,7 +12,7 @@ import (
 // RegisterAuth memasang semua endpoint /auth.
 // Menerima fiber.Router (grup /api/v1 dari routes.go) — tidak tahu cara grup dibuat.
 func RegisterAuth(api fiber.Router, deps Dependencies) {
-	auth := api.Group("/auth")
+	auth := api.Group("/auth", middleware.RequireJSON)
 	auth.Post("/register", register(deps.AuthService))
 	auth.Post("/login", login(deps.AuthService))
 	auth.Post("/refresh", refresh(deps.AuthService))
