@@ -65,7 +65,11 @@ func main() {
 		os.Exit(1)
 	}
 	middleware.RegisterHTTP(app, logger, allowedOrigins)
-	route.Register(app, route.Dependencies{JWT: jwtManager, AuthService: authSvc})
+	route.Register(app, route.Dependencies{
+		Pool:        pool,
+		JWT:         jwtManager,
+		AuthService: authSvc,
+	})
 
 	// 5. Jalankan server + graceful shutdown.
 	port := config.GetENV("APP_PORT", "3000")

@@ -29,6 +29,7 @@ var (
 	ErrBadRequest           = &AppError{Code: "BAD_REQUEST", Status: 400, Detail: "request body tidak valid"}
 	ErrDuplicateUser        = &AppError{Code: "DUPLICATE_USER", Status: 409, Detail: "username atau email sudah terdaftar"}
 	ErrUnsupportedMediaType = &AppError{Code: "UNSUPPORTED_MEDIA_TYPE", Status: http.StatusUnsupportedMediaType, Detail: "content type must be application/json"}
+	ErrServiceUnavailable   = &AppError{Code: "SERVICE_UNAVAILABLE", Status: http.StatusServiceUnavailable, Detail: "service temporarily unavailable"}
 )
 
 // AsAppError mengubah error apa pun menjadi *AppError.
