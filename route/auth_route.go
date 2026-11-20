@@ -14,7 +14,7 @@ import (
 func RegisterAuth(api fiber.Router, deps Dependencies) {
 	auth := api.Group("/auth", middleware.RequireJSON)
 	auth.Post("/register", register(deps.AuthService))
-	auth.Post("/login", login(deps.AuthService))
+	auth.Post("/login", middleware.LoginRateLimiter(), login(deps.AuthService))
 	auth.Post("/refresh", refresh(deps.AuthService))
 	auth.Post("/logout", logout(deps.AuthService))
 	auth.Get("/me", middleware.RequireAuth(deps.JWT), me(deps.AuthService))
