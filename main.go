@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"medicfo/config"
 	"medicfo/database"
 	"medicfo/helper"
+	"medicfo/middleware"
 	"medicfo/route"
 )
 
@@ -57,6 +59,12 @@ func main() {
 
 	// 4. Fiber + error handler terpusat.
 	app := fiber.New(fiber.Config{ErrorHandler: route.ErrorHandler})
+	allowedOrigins := strings.TrimSpace(config.GetENV("ALLOWED_ORIGINS", "http://localhost:5173"))
+	if allowedOrigins == "" || strings.Contains(allowedOrigins, "*") {
+		logger.Error("ALLOWED_ORIGINS kosong atau wildcard")
+		os.Exit(1)
+	}
+	middleware.RegisterHTTP(app, logger, allowedOrigins)
 	route.Register(app, route.Dependencies{JWT: jwtManager, AuthService: authSvc})
 
 	// 5. Jalankan server + graceful shutdown.
