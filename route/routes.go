@@ -27,5 +27,5 @@ func Register(app *fiber.App, deps Dependencies) {
 // ErrorHandler memetakan SEMUA error menjadi envelope di satu tempat.
 func ErrorHandler(c *fiber.Ctx, err error) error {
 	body, status := helper.FromError(err)
-	return c.Status(status).SendString(body)
+	return c.Status(status).Type("json").SendString(body)
 }

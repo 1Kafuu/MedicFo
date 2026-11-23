@@ -23,7 +23,7 @@ func RegisterAuth(api fiber.Router, deps Dependencies) {
 // respond: pembungkus kecil agar handler konsisten.
 func respond(c *fiber.Ctx, status int, message string, data any) error {
 	body, s := helper.Ok(status, message, data, nil)
-	return c.Status(s).SendString(body)
+	return c.Status(s).Type("json").SendString(body)
 }
 
 // register: POST /api/v1/auth/register (201)

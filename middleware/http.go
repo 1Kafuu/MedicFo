@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"strings"
+	"mime"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -24,8 +24,12 @@ func CORS(allowedOrigins string) fiber.Handler {
 }
 
 func RequireJSON(c *fiber.Ctx) error {
-	if methodsWithBody[c.Method()] &&
-		!strings.HasPrefix(strings.ToLower(c.Get(fiber.HeaderContentType)), fiber.MIMEApplicationJSON) {
+	if !methodsWithBody[c.Method()] {
+		return c.Next()
+	}
+
+	contentType, _, err := mime.ParseMediaType(c.Get(fiber.HeaderContentType))
+	if err != nil || contentType != fiber.MIMEApplicationJSON {
 		return helper.ErrUnsupportedMediaType
 	}
 	return c.Next()
