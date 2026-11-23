@@ -7,7 +7,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"medicfo/app/model"
 )
@@ -20,21 +19,25 @@ var (
 )
 
 type UserRepository interface {
+	WithTx(tx DBTX) UserRepository
 	Create(ctx context.Context, u model.User) (model.User, error)
 	FindByEmail(ctx context.Context, email string) (model.User, error)
 	FindByID(ctx context.Context, id int64) (model.User, error)
 }
 
-type userPostgresRepository struct{ pool *pgxpool.Pool }
+type userPostgresRepository struct{ db DBTX }
 
+func NewUserRepository(db DBTX) UserRepository {
+	return &userPostgresRepository{db: db}
+}
 
-func NewUserRepository(pool *pgxpool.Pool) UserRepository {
-	return &userPostgresRepository{pool: pool}
+func (r *userPostgresRepository) WithTx(tx DBTX) UserRepository {
+	return &userPostgresRepository{db: tx}
 }
 
 func (r *userPostgresRepository) Create(ctx context.Context, u model.User) (model.User, error) {
 	var created model.User
-	err := r.pool.QueryRow(ctx,
+	err := r.db.QueryRow(ctx,
 		`INSERT INTO users (username, email, password, role, is_active)
 		 VALUES ($1, $2, $3, $4, $5)
 		 RETURNING id, username, email, password, role, is_active, created_at`,
@@ -54,7 +57,7 @@ func (r *userPostgresRepository) Create(ctx context.Context, u model.User) (mode
 
 func (r *userPostgresRepository) FindByEmail(ctx context.Context, email string) (model.User, error) {
 	var u model.User
-	err := r.pool.QueryRow(ctx,
+	err := r.db.QueryRow(ctx,
 		`SELECT id, username, email, password, role, is_active, created_at
 		 FROM users WHERE email = $1`, email,
 	).Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)
@@ -69,7 +72,7 @@ func (r *userPostgresRepository) FindByEmail(ctx context.Context, email string) 
 
 func (r *userPostgresRepository) FindByID(ctx context.Context, id int64) (model.User, error) {
 	var u model.User
-	err := r.pool.QueryRow(ctx,
+	err := r.db.QueryRow(ctx,
 		`SELECT id, username, email, password, role, is_active, created_at
 		 FROM users WHERE id = $1`, id,
 	).Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.Role, &u.IsActive, &u.CreatedAt)

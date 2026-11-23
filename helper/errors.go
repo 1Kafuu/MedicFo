@@ -16,18 +16,20 @@ func (e *AppError) Error() string { return e.Code + ": " + e.Detail }
 
 // Sentinel error domain — daftar kode error baku sistem.
 var (
-	ErrInvalidCredentials = &AppError{Code: "INVALID_CREDENTIALS", Status: http.StatusUnauthorized, Detail: "email or password is wrong"}
-	ErrRateLimited        = &AppError{Code: "RATE_LIMITED", Status: http.StatusTooManyRequests, Detail: "too many attempts, try again later"}
-	ErrVersionConflict    = &AppError{Code: "VERSION_CONFLICT", Status: http.StatusConflict, Detail: "data was modified, reload and retry"}
-	ErrQuotaExceeded      = &AppError{Code: "QUOTA_EXCEEDED", Status: http.StatusConflict, Detail: "doctor schedule quota is full"}
-	ErrForbidden          = &AppError{Code: "FORBIDDEN", Status: http.StatusForbidden, Detail: "you do not have access to this resource"}
-	ErrDuplicateReview    = &AppError{Code: "DUPLICATE_REVIEW", Status: http.StatusConflict, Detail: "you already reviewed this doctor"}
-	ErrNotFound           = &AppError{Code: "NOT_FOUND", Status: http.StatusNotFound, Detail: "resource not found"}
-	ErrTokenExpired       = &AppError{Code: "TOKEN_EXPIRED", Status: http.StatusUnauthorized, Detail: "token has expired"}
-	ErrUnauthorized       = &AppError{Code: "UNAUTHORIZED", Status: http.StatusUnauthorized, Detail: "authentication required"}
-	ErrInternal           = &AppError{Code: "INTERNAL_ERROR", Status: http.StatusInternalServerError, Detail: "internal server error"}
-	ErrBadRequest         = &AppError{Code: "BAD_REQUEST", Status: 400, Detail: "request body tidak valid"}
-	ErrDuplicateUser      = &AppError{Code: "DUPLICATE_USER", Status: 409, Detail: "username atau email sudah terdaftar"}
+	ErrInvalidCredentials   = &AppError{Code: "INVALID_CREDENTIALS", Status: http.StatusUnauthorized, Detail: "email or password is wrong"}
+	ErrRateLimited          = &AppError{Code: "RATE_LIMITED", Status: http.StatusTooManyRequests, Detail: "too many attempts, try again later"}
+	ErrVersionConflict      = &AppError{Code: "VERSION_CONFLICT", Status: http.StatusConflict, Detail: "data was modified, reload and retry"}
+	ErrQuotaExceeded        = &AppError{Code: "QUOTA_EXCEEDED", Status: http.StatusConflict, Detail: "doctor schedule quota is full"}
+	ErrForbidden            = &AppError{Code: "FORBIDDEN", Status: http.StatusForbidden, Detail: "you do not have access to this resource"}
+	ErrDuplicateReview      = &AppError{Code: "DUPLICATE_REVIEW", Status: http.StatusConflict, Detail: "you already reviewed this doctor"}
+	ErrNotFound             = &AppError{Code: "NOT_FOUND", Status: http.StatusNotFound, Detail: "resource not found"}
+	ErrTokenExpired         = &AppError{Code: "TOKEN_EXPIRED", Status: http.StatusUnauthorized, Detail: "token has expired"}
+	ErrUnauthorized         = &AppError{Code: "UNAUTHORIZED", Status: http.StatusUnauthorized, Detail: "authentication required"}
+	ErrInternal             = &AppError{Code: "INTERNAL_ERROR", Status: http.StatusInternalServerError, Detail: "internal server error"}
+	ErrBadRequest           = &AppError{Code: "BAD_REQUEST", Status: 400, Detail: "request body tidak valid"}
+	ErrDuplicateUser        = &AppError{Code: "DUPLICATE_USER", Status: 409, Detail: "username atau email sudah terdaftar"}
+	ErrUnsupportedMediaType = &AppError{Code: "UNSUPPORTED_MEDIA_TYPE", Status: http.StatusUnsupportedMediaType, Detail: "content type must be application/json"}
+	ErrServiceUnavailable   = &AppError{Code: "SERVICE_UNAVAILABLE", Status: http.StatusServiceUnavailable, Detail: "service temporarily unavailable"}
 )
 
 // AsAppError mengubah error apa pun menjadi *AppError.

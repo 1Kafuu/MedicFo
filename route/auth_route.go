@@ -12,9 +12,9 @@ import (
 // RegisterAuth memasang semua endpoint /auth.
 // Menerima fiber.Router (grup /api/v1 dari routes.go) — tidak tahu cara grup dibuat.
 func RegisterAuth(api fiber.Router, deps Dependencies) {
-	auth := api.Group("/auth")
+	auth := api.Group("/auth", middleware.RequireJSON)
 	auth.Post("/register", register(deps.AuthService))
-	auth.Post("/login", login(deps.AuthService))
+	auth.Post("/login", middleware.LoginRateLimiter(), login(deps.AuthService))
 	auth.Post("/refresh", refresh(deps.AuthService))
 	auth.Post("/logout", logout(deps.AuthService))
 	auth.Get("/me", middleware.RequireAuth(deps.JWT), me(deps.AuthService))
@@ -23,7 +23,7 @@ func RegisterAuth(api fiber.Router, deps Dependencies) {
 // respond: pembungkus kecil agar handler konsisten.
 func respond(c *fiber.Ctx, status int, message string, data any) error {
 	body, s := helper.Ok(status, message, data, nil)
-	return c.Status(s).SendString(body)
+	return c.Status(s).Type("json").SendString(body)
 }
 
 // register: POST /api/v1/auth/register (201)

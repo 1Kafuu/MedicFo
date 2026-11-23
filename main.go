@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"medicfo/config"
 	"medicfo/database"
 	"medicfo/helper"
+	"medicfo/middleware"
 	"medicfo/route"
 )
 
@@ -39,6 +41,13 @@ func main() {
 		os.Exit(1)
 	}
 	defer pool.Close()
+	permissionRepo := repository.NewPermissionRepository(pool)
+	rawPermissions, err := permissionRepo.ListRolePermissions(context.Background())
+	if err != nil {
+		logger.Error("gagal memuat permissions", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	permissionSet := helper.NewPermissionSet(rawPermissions)
 
 	// 3. Susun dependensi: helper → repository → service → route.
 	jwtManager := helper.NewJWTManager(
@@ -48,16 +57,30 @@ func main() {
 	)
 	refreshTTL := time.Duration(config.GetENVInt("JWT_REFRESH_TTL_DAYS", 7)) * 24 * time.Hour
 
+	txManager := repository.NewTxManager(pool)
+
 	authSvc := service.NewAuthService(
 		repository.NewUserRepository(pool),
 		repository.NewTokenRepository(pool),
 		jwtManager,
+		txManager,
 		refreshTTL,
 	)
 
 	// 4. Fiber + error handler terpusat.
 	app := fiber.New(fiber.Config{ErrorHandler: route.ErrorHandler})
-	route.Register(app, route.Dependencies{JWT: jwtManager, AuthService: authSvc})
+	allowedOrigins := strings.TrimSpace(config.GetENV("ALLOWED_ORIGINS", "http://localhost:5173"))
+	if allowedOrigins == "" || strings.Contains(allowedOrigins, "*") {
+		logger.Error("ALLOWED_ORIGINS kosong atau wildcard")
+		os.Exit(1)
+	}
+	middleware.RegisterHTTP(app, logger, allowedOrigins)
+	route.Register(app, route.Dependencies{
+		Pool:        pool,
+		JWT:         jwtManager,
+		AuthService: authSvc,
+		Permissions: permissionSet,
+	})
 
 	// 5. Jalankan server + graceful shutdown.
 	port := config.GetENV("APP_PORT", "3000")
