@@ -70,6 +70,7 @@ func (m *JWTManager) Parse(tokenString string) (model.AuthUser, error) {
 		},
 		jwt.WithIssuer(m.issuer),
 		jwt.WithExpirationRequired(),
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
 	)
 
 	if err != nil {
