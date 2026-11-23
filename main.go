@@ -57,10 +57,13 @@ func main() {
 	)
 	refreshTTL := time.Duration(config.GetENVInt("JWT_REFRESH_TTL_DAYS", 7)) * 24 * time.Hour
 
+	txManager := repository.NewTxManager(pool)
+
 	authSvc := service.NewAuthService(
 		repository.NewUserRepository(pool),
 		repository.NewTokenRepository(pool),
 		jwtManager,
+		txManager,
 		refreshTTL,
 	)
 
