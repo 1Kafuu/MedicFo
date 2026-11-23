@@ -14,7 +14,6 @@ import (
 // Cukup panjang agar tidak bisa ditebak; tidak perlu lebih panjang.
 const refreshTokenBytes = 32
 
-
 type AuthService struct {
 	users      repository.UserRepository
 	tokens     repository.TokenRepository
@@ -92,23 +91,32 @@ func (s *AuthService) Refresh(ctx context.Context, req model.RefreshRequest) (mo
 	}
 
 	hash := helper.SHA256Hex(req.RefreshToken)
-
-	stored, err := s.tokens.FindActive(ctx, hash)
+	stored, err := s.tokens.FindByHash(ctx, hash)
 	if err != nil {
-		// Token tak dikenal / dicabut / kedaluwarsa → satu pesan yang sama.
 		return model.TokenPair{}, helper.ErrUnauthorized
 	}
-
+	if stored.RevokedAt != nil || !stored.ExpiresAt.After(time.Now()) {
+		if err := s.tokens.RevokeAllForUser(ctx, stored.UserID); err != nil {
+			return model.TokenPair{}, helper.ErrInternal
+		}
+		return model.TokenPair{}, helper.ErrUnauthorized
+	}
+	if err := s.tokens.Revoke(ctx, hash); err != nil {
+		if !errors.Is(err, repository.ErrNotFound) {
+			return model.TokenPair{}, helper.ErrInternal
+		}
+		latest, lookupErr := s.tokens.FindByHash(ctx, hash)
+		if lookupErr == nil && latest.RevokedAt != nil {
+			if err := s.tokens.RevokeAllForUser(ctx, latest.UserID); err != nil {
+				return model.TokenPair{}, helper.ErrInternal
+			}
+		}
+		return model.TokenPair{}, helper.ErrUnauthorized
+	}
 	user, err := s.users.FindByID(ctx, stored.UserID)
 	if err != nil || !user.IsActive {
 		return model.TokenPair{}, helper.ErrUnauthorized
 	}
-
-	// Rotasi: token lama mati SEBELUM token baru diterbitkan.
-	if err := s.tokens.Revoke(ctx, hash); err != nil {
-		return model.TokenPair{}, helper.ErrInternal
-	}
-
 	return s.issueTokenPair(ctx, user)
 }
 
