@@ -9,10 +9,11 @@ import (
 )
 
 type Dependencies struct {
-	Pool        *pgxpool.Pool
-	JWT         *helper.JWTManager
-	AuthService *service.AuthService
-	Permissions *helper.PermissionSet
+	Pool          *pgxpool.Pool
+	JWT           *helper.JWTManager
+	AuthService   *service.AuthService
+	DoctorService *service.DoctorService
+	Permissions   *helper.PermissionSet
 }
 
 // Register memasang seluruh API di bawah /api/v1.
@@ -20,7 +21,7 @@ func Register(app *fiber.App, deps Dependencies) {
 	api := app.Group("/api/v1")
 	api.Get("/health", healthCheck(deps.Pool))
 	RegisterAuth(api, deps)
-	// FT-03: RegisterDoctor(api, deps.DoctorService)  ← 1 baris + file sendiri
+	RegisterDoctor(api, deps)
 	// FT-05: RegisterAppointment(api, deps.AppointmentService)
 }
 

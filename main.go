@@ -59,13 +59,17 @@ func main() {
 
 	txManager := repository.NewTxManager(pool)
 
+	userRepo := repository.NewUserRepository(pool)
+
 	authSvc := service.NewAuthService(
-		repository.NewUserRepository(pool),
+		userRepo,
 		repository.NewTokenRepository(pool),
 		jwtManager,
 		txManager,
 		refreshTTL,
 	)
+
+	doctorSvc := service.NewDoctorService(repository.NewDoctorRepository(pool), userRepo)
 
 	// 4. Fiber + error handler terpusat.
 	app := fiber.New(fiber.Config{ErrorHandler: route.ErrorHandler})
@@ -76,10 +80,11 @@ func main() {
 	}
 	middleware.RegisterHTTP(app, logger, allowedOrigins)
 	route.Register(app, route.Dependencies{
-		Pool:        pool,
-		JWT:         jwtManager,
-		AuthService: authSvc,
-		Permissions: permissionSet,
+		Pool:          pool,
+		JWT:           jwtManager,
+		AuthService:   authSvc,
+		DoctorService: doctorSvc,
+		Permissions:   permissionSet,
 	})
 
 	// 5. Jalankan server + graceful shutdown.
