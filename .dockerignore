@@ -1,0 +1,21 @@
+# Secret dan konfigurasi lokal tidak boleh masuk ke image.
+.env
+.env.*
+
+# Git, log, dan hasil kerja lokal tidak dibutuhkan saat build.
+.git
+.gitignore
+logs/
+*.log
+coverage.out
+
+# Binary dan artifact build lokal.
+bin/
+*.exe
+*.test
+*.out
+
+# IDE dan sistem operasi.
+.idea/
+.vscode/
+.DS_Store
