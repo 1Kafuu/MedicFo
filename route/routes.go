@@ -24,6 +24,7 @@ func Register(app *fiber.App, deps Dependencies) {
 	RegisterAuth(api, deps)
 	RegisterDoctor(api, deps)
 	RegisterNotification(api, deps)
+	RegisterAdmin(api, deps)
 	// FT-05: RegisterAppointment(api, deps.AppointmentService)
 }
 

@@ -89,7 +89,13 @@ func main() {
 		)
 		userRepo := repository.NewUserRepository(pool)
 		doctorSvc := service.NewDoctorService(repository.NewDoctorRepository(pool), userRepo)
-		notificationSvc := service.NewNotificationService(repository.NewNotificationRepository(pool))
+		inspector := config.NewInspector()
+		defer inspector.Close()
+		notificationSvc := service.NewNotificationService(
+			repository.NewNotificationRepository(pool),
+			repository.NewOutboxRepository(pool),
+			inspector,
+		)
 
 		app = fiber.New(fiber.Config{ErrorHandler: route.ErrorHandler})
 		allowedOrigins := strings.TrimSpace(config.GetENV("ALLOWED_ORIGINS", "http://localhost:5173"))

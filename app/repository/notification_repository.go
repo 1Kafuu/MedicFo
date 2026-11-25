@@ -15,6 +15,7 @@ type NotificationRepository interface {
 	// Claim mengembalikan false bila event ini sudah pernah tercatat.
 	Claim(ctx context.Context, n model.Notification) (bool, error)
 	FindByUser(ctx context.Context, userID int64, limit int) ([]model.Notification, error)
+	Count(ctx context.Context) (int, error)
 }
 
 type notificationPostgresRepository struct{ db DBTX }
@@ -74,4 +75,13 @@ func (r *notificationPostgresRepository) FindByUser(ctx context.Context, userID 
 		return nil, fmt.Errorf("membaca row notifikasi: %w", err)
 	}
 	return result, nil
+}
+
+// Count menghitung total notifikasi yang berhasil dikirim.
+func (r *notificationPostgresRepository) Count(ctx context.Context) (int, error) {
+	var total int
+	if err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM notifications`).Scan(&total); err != nil {
+		return 0, fmt.Errorf("menghitung notifikasi: %w", err)
+	}
+	return total, nil
 }

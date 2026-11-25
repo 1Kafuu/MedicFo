@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"medicfo/app/model"
 )
@@ -13,6 +14,8 @@ type OutboxRepository interface {
 	// Pemanggilnya wajib berada di dalam transaction.
 	FetchUnpublished(ctx context.Context, limit int) ([]model.OutboxEvent, error)
 	MarkPublished(ctx context.Context, ids []int64) error
+	// Stats menghitung event pending/published dan usia event pending tertua.
+	Stats(ctx context.Context) (pending, published int, oldest time.Duration, err error)
 }
 
 type outboxPostgresRepository struct{ db DBTX }
@@ -64,4 +67,24 @@ func (r *outboxPostgresRepository) MarkPublished(ctx context.Context, ids []int6
 		return fmt.Errorf("menandai outbox: %w", err)
 	}
 	return nil
+}
+
+// Stats memakai satu query agregat. EXTRACT(EPOCH ...) dikonversi ke
+// time.Duration di Go agar tidak bergantung pada pemetaan tipe interval.
+func (r *outboxPostgresRepository) Stats(ctx context.Context) (int, int, time.Duration, error) {
+	var pending, published int
+	var seconds float64
+	err := r.db.QueryRow(ctx, `
+		SELECT
+			COUNT(*) FILTER (WHERE published_at IS NULL),
+			COUNT(*) FILTER (WHERE published_at IS NOT NULL),
+			COALESCE(EXTRACT(EPOCH FROM (
+				NOW() - MIN(CASE WHEN published_at IS NULL THEN created_at END)
+			))::double precision, 0)
+		FROM outbox`,
+	).Scan(&pending, &published, &seconds)
+	if err != nil {
+		return 0, 0, 0, fmt.Errorf("mengambil statistik outbox: %w", err)
+	}
+	return pending, published, time.Duration(seconds * float64(time.Second)), nil
 }

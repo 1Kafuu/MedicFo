@@ -20,6 +20,10 @@ type fakeOutboxRepo struct {
 	fetchErr     error
 	marked       []int64
 	withTxCalled bool
+	pending      int
+	published    int
+	oldest       time.Duration
+	statsErr     error
 }
 
 func (f *fakeOutboxRepo) WithTx(repository.DBTX) repository.OutboxRepository {
@@ -34,6 +38,10 @@ func (f *fakeOutboxRepo) FetchUnpublished(context.Context, int) ([]model.OutboxE
 func (f *fakeOutboxRepo) MarkPublished(_ context.Context, ids []int64) error {
 	f.marked = append([]int64(nil), ids...)
 	return nil
+}
+
+func (f *fakeOutboxRepo) Stats(context.Context) (int, int, time.Duration, error) {
+	return f.pending, f.published, f.oldest, f.statsErr
 }
 
 type fakeTxOnce struct{ err error }
