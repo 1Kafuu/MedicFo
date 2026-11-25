@@ -70,6 +70,7 @@ func main() {
 	)
 
 	doctorSvc := service.NewDoctorService(repository.NewDoctorRepository(pool), userRepo)
+	reportSvc := service.NewReportService(repository.NewReportRepository(pool))
 
 	// 4. Fiber + error handler terpusat.
 	app := fiber.New(fiber.Config{ErrorHandler: route.ErrorHandler})
@@ -84,6 +85,7 @@ func main() {
 		JWT:           jwtManager,
 		AuthService:   authSvc,
 		DoctorService: doctorSvc,
+		ReportService: reportSvc,
 		Permissions:   permissionSet,
 	})
 
