@@ -1,0 +1,95 @@
+# Jalankan seluruh sistem: docker compose up -d --build
+# JWT_SECRET dan DB_PASSWORD dibaca dari file .env di folder yang sama.
+
+x-app: &app
+  build: .
+  image: medicfo-api:local
+  restart: unless-stopped
+  environment:
+    APP_PORT: "3000"
+    LOG_LEVEL: ${LOG_LEVEL:-info}
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_USER: ${DB_USER:-postgres}
+    DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD wajib diisi di .env}
+    DB_NAME: ${DB_NAME:-medicfo_backend}
+    DB_SSLMODE: disable
+    DB_MAX_CONNS: "10"
+    JWT_SECRET: ${JWT_SECRET:?JWT_SECRET wajib diisi di .env}
+    JWT_ISSUER: ${JWT_ISSUER:-medicfo}
+    JWT_ACCESS_TTL_MINUTES: "15"
+    JWT_REFRESH_TTL_DAYS: "7"
+    ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
+    MONGO_URI: mongodb://mongo:27017
+    MONGO_DATABASE: ${MONGO_DATABASE:-medicfo_backend}
+    MONGO_MAX_POOL: "20"
+    REDIS_ADDR: redis:6379
+    REDIS_PASSWORD: ""
+    REDIS_DB: "0"
+  depends_on:
+    postgres:
+      condition: service_healthy
+    mongo:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  # Worker menyusul setelah binary worker tersedia; saat ini hanya API yang
+  # dijalankan dari image aplikasi.
+  api:
+    <<: *app
+    ports:
+      - "8080:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/api/v1/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD wajib diisi di .env}
+      POSTGRES_DB: ${DB_NAME:-medicfo_backend}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Migration dijalankan otomatis hanya saat volume masih kosong.
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-medicfo_backend}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mongo:
+    image: mongo:9.0
+    restart: unless-stopped
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
+  mongodata:
+  redisdata:
