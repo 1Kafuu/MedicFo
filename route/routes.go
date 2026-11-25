@@ -13,6 +13,7 @@ type Dependencies struct {
 	JWT           *helper.JWTManager
 	AuthService   *service.AuthService
 	DoctorService *service.DoctorService
+	ReportService *service.ReportService
 	Permissions   *helper.PermissionSet
 }
 
@@ -22,6 +23,7 @@ func Register(app *fiber.App, deps Dependencies) {
 	api.Get("/health", healthCheck(deps.Pool))
 	RegisterAuth(api, deps)
 	RegisterDoctor(api, deps)
+	RegisterReport(api, deps)
 	// FT-05: RegisterAppointment(api, deps.AppointmentService)
 }
 
