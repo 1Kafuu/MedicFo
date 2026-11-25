@@ -35,8 +35,10 @@ func (f *fakeUserRepo) FindByID(context.Context, int64) (model.User, error) {
 }
 
 type fakeNotificationRepo struct {
-	claimed bool
-	calls   int
+	claimed  bool
+	calls    int
+	total    int
+	countErr error
 }
 
 func (f *fakeNotificationRepo) WithTx(repository.DBTX) repository.NotificationRepository { return f }
@@ -46,6 +48,10 @@ func (f *fakeNotificationRepo) Claim(_ context.Context, _ model.Notification) (b
 }
 func (f *fakeNotificationRepo) FindByUser(context.Context, int64, int) ([]model.Notification, error) {
 	return nil, nil
+}
+
+func (f *fakeNotificationRepo) Count(context.Context) (int, error) {
+	return f.total, f.countErr
 }
 
 type fakeMailer struct {
