@@ -24,6 +24,12 @@ func RedisOpt() asynq.RedisClientOpt {
 	}
 }
 
+// NewInspector hanya MEMBACA keadaan queue. Ia tidak menghubungi Redis saat
+// dibuat, sehingga API tetap bisa menyala walaupun Redis sedang mati.
+func NewInspector() *asynq.Inspector {
+	return asynq.NewInspector(RedisOpt())
+}
+
 // NewWorkerServer menyiapkan server Asynq yang hanya memproses queue notifikasi.
 func NewWorkerServer(logger *slog.Logger) *asynq.Server {
 	return asynq.NewServer(RedisOpt(), asynq.Config{
