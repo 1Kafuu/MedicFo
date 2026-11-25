@@ -182,20 +182,30 @@ Detail mekanisme tiap fitur → bagian "Fitur Sistem" di atas.
 
 ## Cara Menjalankan
 
+### Docker Compose
+
 ```bash
-# 1. Salin env
+# 1. Salin env lalu isi minimal DB_PASSWORD dan JWT_SECRET (minimal 32 karakter)
+cp .env.example .env
+
+# 2. Build image dan jalankan API + PostgreSQL + MongoDB + Redis
+docker compose up -d --build
+
+# 3. Cek status container dan health API
+docker compose ps
+curl http://localhost:8080/api/v1/health
+```
+
+API tersedia di `http://localhost:8080/api/v1`. Migration di folder `migrations/` dijalankan otomatis saat volume PostgreSQL dibuat pertama kali. Hanya API yang membuka port ke host; database tetap berada di dalam network Compose.
+
+### Menjalankan API tanpa Compose
+
+```bash
 cp .env.example .env   # isi DSN PostgreSQL, URI MongoDB, Redis addr, JWT secret
-
-# 2. Jalankan database
-docker compose up -d postgres mongo redis   # setelah FT-14 ter-merge
-
-# 3. Jalankan migration
-go run ./migrations   # atau psql -f migrations/001_init.sql
-
-# 4. Jalankan API
-go run main.go
-
-# Server di http://localhost:8080/api/v1
+psql -U postgres -d medicfo_backend -f migrations/001_auth.sql
+psql -U postgres -d medicfo_backend -f migrations/002_rbac.sql
+psql -U postgres -d medicfo_backend -f migrations/003_doctors.sql
+go run main.go         # memakai APP_PORT, bawaan 3000
 ```
 
 ## Teknologi
