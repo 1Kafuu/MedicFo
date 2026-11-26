@@ -38,7 +38,7 @@ INSERT INTO role_permissions (role_name, permission_name) VALUES
     ('doctor', 'doctor:list'), ('doctor', 'schedule:list'),
     ('doctor', 'appointment:read'), ('doctor', 'appointment:status'),
     ('doctor', 'medical_record:write'), ('doctor', 'medical_record:read:any'),
-    ('doctor', 'review:read'), ('doctor', 'review:reply'), ('doctor', 'report:read'),
+    ('doctor', 'review:read'), ('doctor', 'review:reply'),
     ('receptionist', 'doctor:list'), ('receptionist', 'schedule:list'),
     ('receptionist', 'appointment:read'), ('receptionist', 'appointment:status'),
     ('receptionist', 'report:read'),
